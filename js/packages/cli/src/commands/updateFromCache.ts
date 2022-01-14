@@ -17,7 +17,15 @@ import {
   METADATA_SCHEMA,
   UpdateMetadataArgs,
 } from '../helpers/schema';
-
+import {
+  CreateMetadataV2Args,
+  UpdateMetadataV2Args,
+  CreateMasterEditionV3Args,
+  DataV2,
+  Collection,
+  Uses,
+  VerifyCollection,
+} from '@metaplex-foundation/mpl-token-metadata';
 const SIGNING_INTERVAL = 60 * 1000; //60s
 
 export async function updateFromCache(
@@ -103,7 +111,7 @@ async function updateMetadataBatch(
   differences,
 ) {
   const instructions: TransactionInstruction[] = metadataList.map(meta => {
-    const newData = new Data({
+    const newData = new DataV2({
       ...meta[0].data,
       creators: meta[0].data.creators.map(
         c =>
@@ -112,10 +120,11 @@ async function updateMetadataBatch(
       uri: differences[meta[0].data.uri],
     });
 
-    const value = new UpdateMetadataArgs({
+    const value = new UpdateMetadataV2Args({
       data: newData,
-      updateAuthority: keypair.publicKey.toBase58(),
+      updateAuthority: keypair.publicKey,
       primarySaleHappened: null,
+      isMutable: false,
     });
     const txnData = Buffer.from(serialize(METADATA_SCHEMA, value));
     return createUpdateMetadataInstruction(
